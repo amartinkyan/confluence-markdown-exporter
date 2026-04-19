@@ -120,6 +120,30 @@ def _extract_base_url(url: str) -> str:
     return normalize_instance_url(base)
 
 
+def _jira_base_url_from_href(href: str | None) -> str | None:
+    """Extract the Jira server base URL (``scheme://host[:port]``) from a Jira issue href.
+
+    Jira issue hrefs embedded by Confluence look like
+    ``https://jira.company.com/browse/ISSUE-123`` or, for Atlassian Cloud,
+    ``https://company.atlassian.net/browse/ISSUE-123``.
+
+    Returns ``None`` if *href* is falsy, relative, or cannot be parsed.
+    """
+    if not href:
+        return None
+    try:
+        parsed = urllib.parse.urlparse(href)
+    except ValueError:
+        return None
+    if not parsed.scheme or not parsed.hostname:
+        return None
+    base = f"{parsed.scheme}://{parsed.hostname}"
+    _standard_ports = {"http": 80, "https": 443}
+    if parsed.port and parsed.port != _standard_ports.get(parsed.scheme):
+        base += f":{parsed.port}"
+    return normalize_instance_url(base)
+
+
 settings = get_settings()
 
 
@@ -1114,15 +1138,31 @@ class Page(Document):
             if not issue_key:
                 return self.process_tag(link, parent_tags)
 
+            # Determine the Jira server URL.  Priority order:
+            # 1. Explicit config override (jira_base_url).
+            # 2. Base URL extracted from the issue link's href (e.g.
+            #    https://jira.company.com/browse/ISSUE-123 → https://jira.company.com).
+            #    This is the correct server even when Jira and Confluence live on
+            #    separate subdomains.
+            # 3. Fallback to the Confluence page's base_url for backwards compatibility.
+            page_settings = get_settings()
+            href = link.get("href")
+            jira_url = (
+                normalize_instance_url(page_settings.export.jira_base_url)
+                if page_settings.export.jira_base_url
+                else _jira_base_url_from_href(str(href) if href else None)
+                or self.page.base_url
+            )
+
             try:
-                issue = JiraIssue.from_key(str(issue_key), self.page.base_url)
+                issue = JiraIssue.from_key(str(issue_key), jira_url)
             except HTTPError:
-                return f"[[{issue_key}]]({link.get('href')})"
+                return f"[[{issue_key}]]({href})"
 
             if not issue:
-                return f"[[{issue_key}]]({link.get('href')})"
+                return f"[[{issue_key}]]({href})"
 
-            return f"[[{issue.key}] {issue.summary}]({link.get('href')})"
+            return f"[[{issue.key}] {issue.summary}]({href})"
 
         def convert_pre(self, el: BeautifulSoup, text: str, parent_tags: list[str]) -> str:  # type: ignore[override]
             if not text:

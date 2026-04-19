@@ -33,6 +33,8 @@ _CONFIG_KEYS_EPILOG = (
     "| `export.include_document_title` | Prepend H1 title to each page |\n\n"
     "| `export.page_breadcrumbs` | Include breadcrumb links at top of page |\n\n"
     "| `export.enable_jira_enrichment` | Fetch Jira data for enriched links |\n\n"
+    "| `export.jira_base_url` | Jira server base URL when Jira and Confluence are on different"
+    " domains (e.g. `https://jira.company.com`) |\n\n"
     "| `export.attachment_export_all` | Export all attachments, not only referenced ones |\n\n"
     "| `export.filename_length` | Maximum filename length (default: 255) |\n\n"
     "| `connection_config.max_workers` | Parallel export workers (default: 20) |\n\n"
