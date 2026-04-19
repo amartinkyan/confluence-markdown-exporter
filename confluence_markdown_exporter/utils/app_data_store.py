@@ -425,6 +425,17 @@ class ExportConfig(BaseModel):
             "When disabled, only the issue key and link will be included."
         ),
     )
+    jira_base_url: str = Field(
+        default="",
+        title="Jira Base URL",
+        description=(
+            "Base URL of the Jira instance used for enrichment "
+            "(e.g. 'https://jira.company.com'). "
+            "Set this when Jira is hosted on a different domain or subdomain than Confluence. "
+            "When empty (the default), the URL is derived automatically from the Jira issue "
+            "link href embedded in each Confluence page."
+        ),
+    )
     skip_unchanged: bool = Field(
         default=True,
         title="Skip Unchanged Pages",

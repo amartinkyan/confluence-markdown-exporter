@@ -154,6 +154,17 @@ class TestEnvVarOverrides:
             settings = get_settings()
         assert settings.export.enable_jira_enrichment is False
 
+    def test_jira_base_url_env_override(self) -> None:
+        """CME_EXPORT__JIRA_BASE_URL sets an explicit Jira server URL."""
+        with patch.dict(os.environ, {"CME_EXPORT__JIRA_BASE_URL": "https://jira.company.com"}):
+            settings = get_settings()
+        assert settings.export.jira_base_url == "https://jira.company.com"
+
+    def test_jira_base_url_default_is_empty(self) -> None:
+        """jira_base_url defaults to an empty string."""
+        settings = get_settings()
+        assert settings.export.jira_base_url == ""
+
     def test_lockfile_name_env_override(self) -> None:
         """CME_EXPORT__LOCKFILE_NAME overrides lockfile_name."""
         with patch.dict(os.environ, {"CME_EXPORT__LOCKFILE_NAME": "my-lock.json"}):
