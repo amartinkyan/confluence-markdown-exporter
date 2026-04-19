@@ -133,14 +133,15 @@ def _jira_base_url_from_href(href: str | None) -> str | None:
         return None
     try:
         parsed = urllib.parse.urlparse(href)
-        if not parsed.scheme or not parsed.hostname:
-            return None
-        base = f"{parsed.scheme}://{parsed.hostname}"
-        if parsed.port and parsed.port not in (80, 443):
-            base += f":{parsed.port}"
-        return normalize_instance_url(base)
-    except Exception:  # noqa: BLE001
+    except ValueError:
         return None
+    if not parsed.scheme or not parsed.hostname:
+        return None
+    base = f"{parsed.scheme}://{parsed.hostname}"
+    _standard_ports = {"http": 80, "https": 443}
+    if parsed.port and parsed.port != _standard_ports.get(parsed.scheme):
+        base += f":{parsed.port}"
+    return normalize_instance_url(base)
 
 
 settings = get_settings()

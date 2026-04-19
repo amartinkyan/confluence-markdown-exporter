@@ -44,6 +44,15 @@ class TestJiraBaseUrlFromHref:
                 "http://jira.company.com:80/browse/PROJ-1",
                 "http://jira.company.com",
             ),
+            # Non-standard cross-scheme ports are kept (http:443, https:80)
+            (
+                "http://jira.company.com:443/browse/PROJ-1",
+                "http://jira.company.com:443",
+            ),
+            (
+                "https://jira.company.com:80/browse/PROJ-1",
+                "https://jira.company.com:80",
+            ),
         ],
     )
     def test_extracts_base_url(self, href: str, expected: str) -> None:
