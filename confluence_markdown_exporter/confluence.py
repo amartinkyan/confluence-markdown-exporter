@@ -424,7 +424,8 @@ class Attachment(Document):
             "attachment_id": str(self.id),
             "attachment_title": sanitize_filename(self.title),
             # file_id is a GUID and does not need sanitized.
-            "attachment_file_id": self.file_id,
+            # Fall back to the attachment ID when fileId is absent (e.g. Confluence Server).
+            "attachment_file_id": self.file_id or str(self.id),
             "attachment_extension": self.extension,
         }
 
